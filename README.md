@@ -1,5 +1,5 @@
 # Rusty Cuffs
-<img align="right" src="https://i.imgur.com/eqw9VBX.png" width="200"/>
+<img align="right" src="https://i.imgur.com/bWEPIhZ.png" width="200"/>
 
 > A Rust plugin that adds Hand Cuffs to your [uMod](https://umod.org/games/rust) server.
 
