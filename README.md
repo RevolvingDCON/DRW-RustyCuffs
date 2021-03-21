@@ -4,8 +4,7 @@
 > A Rust plugin that adds Hand Cuffs to your [uMod](https://umod.org/games/rust) server.
 
 ###### What is this?
-**RustyCuffs** adds handcuff mechanics to rust by allowing you to restrain and escort other players. For any questions or help, you can add me on discord: `Revolving DCON#1337`
-
+**RustyCuffs** adds handcuff mechanics to rust by allowing you to restrain and escort other players. For any questions or help, you can join our discord [here](https://discord.gg/5BqtyY4pvU)
 ## Video
 Check out the demo video [here](https://www.youtube.com/watch?v=G7dhc0IKczk)
 
