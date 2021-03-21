@@ -59,13 +59,13 @@ Chat commands require the `rustycuffs.admin` permission to be set
 ## Configuration
 ```json
 {
-  "Chat Prefix": "[ 16][#00ffff]Rusty Cuffs[/#][/ ]: ", // Prefix before all chat messages
-  "Chat Icon": 76561199105408156, // Chat Icon for all messages
-  "Return Cuffs": true, // Do players get cuffs back when a key is used to unrestrain target
-  "Restrain Time": 1.0, // How long does it take to restrain a target
-  "Restrain Distance": 2.0, // How far away can players restrain targets
-  "Escort Distance": 0.9, // How far infront do targets hover when being escorted
-  "Restrain NPCs": true // Allow the use of NPCs to be restrained
+  "Chat Prefix": "[+16][#00ffff]Rusty Cuffs[/#][/+]: ",
+  "Chat Icon": 76561199105408156,
+  "Return Cuffs": true,
+  "Restrain Time": 1.0,
+  "Restrain Distance": 2.0,
+  "Escort Distance": 0.9,
+  "Restrain NPCs": true
 }
 ```
 
