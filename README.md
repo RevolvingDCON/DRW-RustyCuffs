@@ -60,11 +60,11 @@ Chat commands require the `rustycuffs.admin` permission to be set
 {
   "Chat Prefix": "[+16][#00ffff]Rusty Cuffs[/#][/+]: ",
   "Chat Icon": 76561199105408156,
-  "Return Cuffs": true,
+  "Return Cuffs": false,
   "Restrain Time": 1.0,
   "Restrain Distance": 2.0,
   "Escort Distance": 0.9,
-  "Restrain NPCs": true
+  "Restrain NPCs": false
 }
 ```
 
