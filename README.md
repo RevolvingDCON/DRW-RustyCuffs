@@ -110,7 +110,7 @@ Can player restrain the target
 private object CanCuffsPlayerRestrain(BasePlayer target, BasePlayer player){
 	Puts("CanCuffsPlayerRestrain works!");
 
-  return null;
+	return null;
 }
 ```
 
