@@ -31,6 +31,7 @@ Equip the cuffs item with `/cuffs <player>` (requires `rustycuffs.admin` to be s
 * `rustycuffs.viewinventory` - Allows player to view the inventory of a target
 * `rustycuffs.execute` - Allows player to kill the target from the select menu
 * `rustycuffs.createkey` - Allows player to create a key from the select menu
+* `rustycuffs.usecuffkeys` - Allows player to use a keys
 * `rustycuffs.unrestrain` - Allows player to unrestrain target
 
 ## Chat Commands

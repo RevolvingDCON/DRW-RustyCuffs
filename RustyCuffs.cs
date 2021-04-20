@@ -36,7 +36,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("RustyCuffs", "Revolving DCON", "0.8.2")]
+    [Info("Rusty Cuffs", "Revolving DCON", "0.9.1")]
     [Description("Handcuffs allowing you to restrain and escort players")]
 
     public class RustyCuffs : CovalencePlugin
@@ -48,33 +48,33 @@ namespace Oxide.Plugins
 
         #region variables
 
-        private static ulong cuffsSkinID = 2415236504;
-        private static string cuffsItemShortname = "metalspring";
+        private ulong cuffsSkinID = 2415236504;
+        private string cuffsItemShortname = "metalspring";
 
         // private static ulong keysSkinID = 2415236504;
-        private static string keysItemShortname = "door.key";
+        private string keysItemShortname = "door.key";
 
         private StoredData storedData;
         private bool storageChanged;
 
-        private static Vector3 chairPositionOffset = new Vector3(0f,-1000f,0);
+        private Vector3 chairPositionOffset = new Vector3(0f,-1000f,0);
 
         // [PluginReference]
         // private Plugin DCON;
 
-        private static Dictionary<string, UIContainer> userUIContainers = new Dictionary<string, UIContainer>();
-        private static Dictionary<string, Timer> userTimers = new Dictionary<string, Timer>();
-        private static Dictionary<string,string> listenToUsers = new Dictionary<string,string>();
-        private static Dictionary<BasePlayer,BasePlayer> selectedUsers = new Dictionary<BasePlayer,BasePlayer>();
-        private static Dictionary<BasePlayer,BasePlayer> escortingUsers = new Dictionary<BasePlayer,BasePlayer>();
-        private static List<BasePlayer> usersInputDisabled = new List<BasePlayer>();
-        private static Dictionary<string,ChairHack> restrainChairs = new Dictionary<string,ChairHack>();
-        private static List<BaseMountable> chairEnts = new List<BaseMountable>();
+        private Dictionary<string, UIContainer> userUIContainers = new Dictionary<string, UIContainer>();
+        private Dictionary<string, Timer> userTimers = new Dictionary<string, Timer>();
+        private Dictionary<string,string> listenToUsers = new Dictionary<string,string>();
+        private Dictionary<BasePlayer,BasePlayer> selectedUsers = new Dictionary<BasePlayer,BasePlayer>();
+        private Dictionary<BasePlayer,BasePlayer> escortingUsers = new Dictionary<BasePlayer,BasePlayer>();
+        private List<BasePlayer> usersInputDisabled = new List<BasePlayer>();
+        private Dictionary<string,ChairHack> restrainChairs = new Dictionary<string,ChairHack>();
+        private List<BaseMountable> chairEnts = new List<BaseMountable>();
 
-        private static int obstructionMask = LayerMask.GetMask("Construction", "Deployable", "Default", "Deployed", "Resource", "Terrain", "World", "Tree", "Impostor");
-        private static int baseMask = LayerMask.GetMask("Construction", "Deployable", "Deployed");
+        private int obstructionMask = LayerMask.GetMask("Construction", "Deployable", "Default", "Deployed", "Resource", "Terrain", "World", "Tree", "Impostor");
+        private int baseMask = LayerMask.GetMask("Construction", "Deployable", "Deployed");
 
-        private static Dictionary<string,string> perms = new Dictionary<string,string>(){
+        private Dictionary<string,string> perms = new Dictionary<string,string>(){
             // primary perms
             {"admin","rustycuffs.admin"},
             {"use","rustycuffs.use"},
@@ -90,7 +90,7 @@ namespace Oxide.Plugins
             {"unrestrain","rustycuffs.unrestrain"},
         };
 
-        private static new Dictionary<string, string> messages = new Dictionary<string, string> {
+        private new Dictionary<string, string> messages = new Dictionary<string, string> {
             // notifications player
             ["scriptreload"] = "Script reload, escorting stopped",
             ["givecuffs"] = "Gave cuffs to {0}",
@@ -127,11 +127,11 @@ namespace Oxide.Plugins
             ["error_escort_stop_view_obstructed"] = "Can not stop escorting, view obstructed",
             ["error_unrestrain_view_obstructed"] = "Can not unrestrain, view obstructed",
 
-            ["error_InvalidSelection"] = "Invalid number, use the number in front of the player's name. Use /{0} to check the list of players again.",
-            ["error_MultiplePlayersFound"] = "Multiple players matching: {1}, please select one of these players by using /{0} list <number>:",
-            ["error_NoListAvailable"] = "You do not have a players list available for /{0}.",
-            ["error_NoPlayersFound"] = "Couldn't find any players matching: {1}." ,
-            ["error_TooManyPlayersFound"] = "Too many players were found, the list of matches is only showing the first 5. Try to be more specific." 
+            ["error_invalid_selection"] = "Invalid number, use the number in front of the player's name. Use /{0} to check the list of players again",
+            ["error_multiple_players_found"] = "Multiple players matching: {1}, please select one of these players by using /{0} list <number>:",
+            ["error_no_list_available"] = "You do not have a players list available for /{0}",
+            ["error_no_players_found"] = "Couldn't find any players matching: {0}" ,
+            ["error_too_many_players_found"] = "Too many players were found, the list of matches is only showing the first 5. Try to be more specific" 
         };
 
         private static RustyCuffs _ins;
@@ -294,6 +294,8 @@ namespace Oxide.Plugins
             }
 
             SaveData();
+
+            _ins = null;
         }
 
         #endregion
@@ -301,7 +303,7 @@ namespace Oxide.Plugins
         #region chat command
 
         private void RestrainCmd(IPlayer player, string command, string[] args){
-            if(!permission.UserHasPermission(player.Id.ToString(), perms["admin"])){
+            if(!player.HasPermission(perms["admin"])){
                 SendMessage(player,new[]{"error_noperms"});
                 return;
             }
@@ -328,7 +330,7 @@ namespace Oxide.Plugins
                 UICont = userUIContainers[bplayer.UserIDString];
             }
 
-            switch(command){
+            switch(command.ToLower()){
                 case "cuffs":
                 case "givecuffs":
                     GiveItem(target,CreateCuffs(1));
@@ -336,7 +338,7 @@ namespace Oxide.Plugins
                     SendMessage(player,new[]{"givecuffs",target.displayName});
                     PlayEffect(target,"assets/prefabs/weapons/arms/effects/pickup_item.prefab");
 
-                    SendMessage(player,new[]{"givecuffs_tgt"});
+                    SendMessage(target,new[]{"givecuffs_tgt"});
                 break;
                 case "cuffskey":
                 case "cuffkeys":
@@ -669,16 +671,11 @@ namespace Oxide.Plugins
             }
         }
 
-        object OnPlayerWound(BasePlayer p){
-            return null;
-        }
-
-        object OnPlayerRevive(BasePlayer reviver, BasePlayer player){
+        private void OnPlayerRevive(BasePlayer reviver, BasePlayer player){
             if(storedData.restrained.ContainsKey(player.UserIDString))PlayNetworkAnimation(player.UserIDString,$"cinematic_play idle_stand_handcuff {player.UserIDString}");
-            return null;
         }
 
-        object OnPlayerDeath(BasePlayer player, HitInfo info){
+        private void OnPlayerDeath(BasePlayer player, HitInfo info){
             listenToUsers.Remove(player.UserIDString);
 
             if(storedData.restrained.ContainsKey(player.UserIDString)){
@@ -692,8 +689,6 @@ namespace Oxide.Plugins
             if(escortingUsers.ContainsKey(player)){
                 StopEscorting(player,Vector3.zero);
             }
-
-            return null;
         }
 
         void OnPlayerSleepEnded(BasePlayer player){
@@ -814,7 +809,7 @@ namespace Oxide.Plugins
 
             // BroadcastPlayer(bplayer,$"{command} - Owner:{UICont.player.displayName} - NPC:{UICont.target.displayName}");
 
-            switch(command){
+            switch(command.ToLower()){
                 case "close":
                     PlayerDeselect(bplayer);
                 break;
@@ -1101,12 +1096,12 @@ namespace Oxide.Plugins
 
                 public void Draw(){
                     List<string[]> buttons = new List<string[]>(){
-                        new[]{"Execute","execute","0.1 0.1 0.1 0.8",perms["execute"]},
-                        new[]{"View Inventory","viewinventory","0.1 0.1 0.1 0.8",!escortingUsers.ContainsKey(player)?perms["viewinventory"]:"FAKE_PERM_ASDF"},
-                        new[]{"Get Key","createkey","0.1 0.1 0.1 0.8",!escortingUsers.ContainsKey(player)?perms["createkey"]:"FAKE_PERM_ASDF"},
-                        new[]{(target != null && escortingUsers.ContainsKey(player))?"Stop Escorting":"Escort","escort","0.1 0.1 0.1 0.8",perms["escort"]},
-                        new[]{"Unrestrain","unrestrain","0.1 0.1 0.1 0.8",perms["unrestrain"]},
-                        new[]{"Close","close","1 0 0 0.8",perms["use"]}, // dont change this or people will get stuck
+                        new[]{"Execute","execute","0.1 0.1 0.1 0.8",_ins.perms["execute"]},
+                        new[]{"View Inventory","viewinventory","0.1 0.1 0.1 0.8",!_ins.escortingUsers.ContainsKey(player)?_ins.perms["viewinventory"]:"FAKE_PERM_ASDF"},
+                        new[]{"Get Key","createkey","0.1 0.1 0.1 0.8",!_ins.escortingUsers.ContainsKey(player)?_ins.perms["createkey"]:"FAKE_PERM_ASDF"},
+                        new[]{(target != null && _ins.escortingUsers.ContainsKey(player))?"Stop Escorting":"Escort","escort","0.1 0.1 0.1 0.8",_ins.perms["escort"]},
+                        new[]{"Unrestrain","unrestrain","0.1 0.1 0.1 0.8",_ins.perms["unrestrain"]},
+                        new[]{"Close","close","1 0 0 0.8",_ins.perms["use"]}, // dont change this or people will get stuck
                     };
 
                     for (int indx = buttons.Count - 1; indx >= 0; indx--){
@@ -1571,8 +1566,8 @@ namespace Oxide.Plugins
         // private void BroadcastPlayer(IPlayer player, string msg, bool prefix = true) => BroadcastPlayer((BasePlayer)player.Object,msg,prefix);
 
         // umod compliance
-        private void SendMessage(BasePlayer player, string[] args, bool prefix = true) => BroadcastPlayer(player,string.Format(lang.GetMessage(args[0],this),string.Join(",", args.Skip(1))),prefix);
-        // private void SendMessage(BasePlayer player, string[] args, bool prefix = true) => BroadcastPlayer(player,string.Format(lang.GetMessage(messages[args[0]],this),string.Join(",", args.Skip(1))),prefix);
+        private void SendMessage(BasePlayer player, string[] args, bool prefix = true) => BroadcastPlayer(player,string.Format(lang.GetMessage(args[0],this),args.Skip(1).ToArray()),prefix);
+        // private void SendMessage(BasePlayer player, string[] args, bool prefix = true) => BroadcastPlayer(player,string.Format(lang.GetMessage(messages[args[0]],this),args.Skip(1).ToArray()),prefix);
         
         private void SendMessage(IPlayer player, string[] args, bool prefix = true) => SendMessage((BasePlayer)player.Object,args,prefix);
 
@@ -1652,10 +1647,10 @@ namespace Oxide.Plugins
         }
         public void PlayEffect(IPlayer player, string prefab, bool global = false) => PlayEffect((player.Object as BasePlayer),prefab,global);
 
-        private static float mdist = 9999f;
-        private static int generalColl = LayerMask.GetMask("Player (Server)","Construction", "Deployable", "Default", "Prevent Building", "Deployed", "Resource", "Terrain", "World","Tree");
+        private float mdist = 9999f;
+        private int generalColl = LayerMask.GetMask("Player (Server)","Construction", "Deployable", "Default", "Prevent Building", "Deployed", "Resource", "Terrain", "World","Tree");
 
-        private static bool TryGetPlayerView(BasePlayer player, out Quaternion viewAngle) {
+        private bool TryGetPlayerView(BasePlayer player, out Quaternion viewAngle) {
             viewAngle = Quaternion.identity;
 
             if (player.serverInput.current == null)
@@ -1666,7 +1661,7 @@ namespace Oxide.Plugins
             return true;
         }
 
-        private static bool TryGetClosestRayPoint(Vector3 sourcePos, Quaternion sourceDir, out object closestEnt, out Vector3 closestHitpoint){
+        private bool TryGetClosestRayPoint(Vector3 sourcePos, Quaternion sourceDir, out object closestEnt, out Vector3 closestHitpoint){
             float closestdist = 999999f;
 
             Vector3 sourceEye = sourcePos + new Vector3(0f, 1.5f, 0f);
@@ -1700,8 +1695,8 @@ namespace Oxide.Plugins
             return BasePlayer.activePlayerList.Where(p => p && (p.UserIDString == nameOrIdOrIp || p.displayName.Contains(nameOrIdOrIp, CompareOptions.OrdinalIgnoreCase) || (p.IsConnected && p.net.connection.ipaddress.Contains(nameOrIdOrIp)))).ToList();
         }
 
-        private static Dictionary<string, List<BasePlayer>> findPlayerMatches = new Dictionary<string, List<BasePlayer>>();
-        private static Dictionary<string, string[]> findPlayerArgs = new Dictionary<string, string[]>();
+        private Dictionary<string, List<BasePlayer>> findPlayerMatches = new Dictionary<string, List<BasePlayer>>();
+        private Dictionary<string, string[]> findPlayerArgs = new Dictionary<string, string[]>();
 
         public bool FindPlayer(string name, object player, string command, ref string[] args, ref BasePlayer target){
             BasePlayer bplayer = (player is IPlayer)?(((IPlayer)player).Object as BasePlayer):player as BasePlayer;
@@ -1711,7 +1706,7 @@ namespace Oxide.Plugins
             if(args[0] == "list"){
                 if (args.Length == 1){
                     if (!findPlayerMatches.ContainsKey(key) || findPlayerMatches[key] == null){
-                        SendMessage(bplayer,new[]{"error_NoListAvailable",command});
+                        SendMessage(bplayer,new[]{"error_no_list_available",command});
                         return false;
                     }
 
@@ -1722,12 +1717,12 @@ namespace Oxide.Plugins
                 int num;
                 if (int.TryParse(args[1], out num)){
                     if (!findPlayerMatches.ContainsKey(key) || findPlayerMatches[key] == null){
-                        SendMessage(bplayer,new[]{"error_NoListAvailable",command});
+                        SendMessage(bplayer,new[]{"error_no_list_available",command});
                         return false;
                     }
 
                     if (num > findPlayerMatches[key].Count){
-                        SendMessage(bplayer,new[]{"error_InvalidSelection",command});
+                        SendMessage(bplayer,new[]{"error_invalid_selection",command});
 
                         FindPlayerShowMatches(bplayer);
                         return false;
@@ -1751,17 +1746,16 @@ namespace Oxide.Plugins
 
                 switch (players.Count){
                     case 0:
-                        SendMessage(bplayer,new[]{"error_NoPlayersFound",command,name});
+                        SendMessage(bplayer,new[]{"error_no_players_found",name});
                     break;
 
                     case 1:
                         target = players[0];
-                        // Puts($"{target.IPlayer.Name}");
                         return true;
                     break;
 
                     default:
-                        SendMessage(bplayer,new[]{"error_MultiplePlayersFound",command,name});
+                        SendMessage(bplayer,new[]{"error_multiple_players_found",command,name});
 
                         if (!findPlayerMatches.ContainsKey(key)){
                             findPlayerMatches.Add(key, players);
@@ -1788,7 +1782,7 @@ namespace Oxide.Plugins
                 BroadcastPlayer(player,$"{i + 1}. {findPlayerMatches[key][i].displayName}",false);
 
                 if (i == 4 && i < findPlayerMatches[key].Count){
-                    SendMessage(player,new[]{"error_TooManyPlayersFound"});
+                    SendMessage(player,new[]{"error_too_many_players_found"});
                     break;
                 }
             }
@@ -1848,7 +1842,7 @@ namespace Oxide.Plugins
                 // vehicle = chair.GetComponent<BaseVehicle>();
 
                 chair.mountPoints.Add(new BaseVehicle.MountPointInfo {
-                    pos = -chairPositionOffset,
+                    pos = -_ins.chairPositionOffset,
                     rot = chair.mountPoints[0].rot,
                     prefab = chair.mountPoints[0].prefab,
                     mountable = chair.mountPoints[0].mountable,
@@ -1859,13 +1853,13 @@ namespace Oxide.Plugins
                 chair.Spawn();
 
                 mount = point.mountable.GetComponent<BaseMountable>();
-                chairEnts.Add(mount);
+                _ins.chairEnts.Add(mount);
                 mount.isMobile = true;
             }
 
             public void Destroy(){
                 chair?.Kill();
-                chairEnts.Remove(mount);
+                _ins.chairEnts.Remove(mount);
             }
         }
 
@@ -1907,7 +1901,7 @@ namespace Oxide.Plugins
 
             private void FixedUpdate() {
                 if (target == null)return;
-                if(_ins.IsViewObstructed(player,baseMask)){
+                if(_ins.IsViewObstructed(player,_ins.baseMask)){
                     _ins.StopEscorting(player,player.transform.position);
                 }
             }
@@ -2016,6 +2010,17 @@ namespace Oxide.Plugins
 
                 Destroy(this);
             }
+        }
+
+        #endregion
+
+        #region DEBUG
+
+        public void jPrint(object type) {
+            string jsonString;
+            jsonString = JsonConvert.SerializeObject(type);
+
+            Puts(jsonString);
         }
 
         #endregion
