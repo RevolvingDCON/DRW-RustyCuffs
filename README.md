@@ -26,7 +26,7 @@ Equip the cuffs item with `/cuffs <player>` (requires `rustycuffs.admin` to be s
 ## Permissions
 * `rustycuffs.admin` - Allows the use of chat commands
 * `rustycuffs.use` - Allows players to use rusty cuffs
-* `rustycuffs.unlimited` - Allows infinte usage of a single cuffs item
+* `rustycuffs.unlimited` - Allows infinite usage of a single cuffs item
 * `rustycuffs.escort` - Allows player to escort a target
 * `rustycuffs.viewinventory` - Allows player to view the inventory of a target
 * `rustycuffs.execute` - Allows player to kill the target from the select menu
@@ -111,7 +111,7 @@ Can player restrain the target
 private object CanCuffsPlayerRestrain(BasePlayer target, BasePlayer player){
 	Puts("CanCuffsPlayerRestrain works!");
 
-  return null;
+	return null;
 }
 ```
 
