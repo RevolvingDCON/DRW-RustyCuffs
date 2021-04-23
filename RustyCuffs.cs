@@ -36,7 +36,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("Rusty Cuffs", "Revolving DCON", "0.9.1")]
+    [Info("Rusty Cuffs", "Revolving DCON", "0.9.3")]
     [Description("Handcuffs allowing you to restrain and escort players")]
 
     public class RustyCuffs : CovalencePlugin
